@@ -91,7 +91,7 @@ def rupture_to_realisation(rupture_id: Optional[int]) -> bytes:
 
 def main():
     # Display the map
-    st.set_page_config(layout="wide")
+    st.set_page_config(layout="wide", page_title="Rupture Explorer")
 
     st.session_state.fmap = folium.Map(
         location=[-42.1, 172.8], zoom_start=6, tiles="cartodbpositron"
