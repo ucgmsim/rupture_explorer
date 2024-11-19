@@ -1,4 +1,4 @@
-<h2>Showing {{ruptures | length}} Ruptures</h2>
+<h2>Showing {{ ruptures | length }} Ruptures</h2>
 <div id="results-table">
   <table>
     <thead>
@@ -25,7 +25,10 @@
           'N/A' }}
         </td>
         <td>
-          <button hx-get="/rupture_map/{{rupture_id}}" hx-target="#map">
+          <button
+            hx-get="{{ url_for('rupture_map', rupture_id=rupture_id) }}"
+            hx-target="#map"
+          >
             {{ rupture.faults | fault_summary }}
           </button>
         </td>
@@ -34,7 +37,7 @@
     </tbody>
   </table>
 </div>
-<form method="get" action="/download">
-  <input type="hidden" name="ruptures" value="{{ruptures | join(',')}}" />
+<form method="get" action="{{ url_for('download') }}">
+  <input type="hidden" name="ruptures" value="{{ ruptures | join(',') }}" />
   <button id="download-button" type="submit">Download Ruptures as CSV</button>
 </form>
