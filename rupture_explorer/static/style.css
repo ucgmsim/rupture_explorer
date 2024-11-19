@@ -1,0 +1,33 @@
+#main-content {
+    padding: 1em;
+}
+#results-table {
+    overflow-y: scroll;
+    max-height: 400px;
+    margin-top: 1em;
+    margin-bottom: 1em;
+}
+#query input {
+    margin-bottom: 1em;
+}
+#query summary {
+    font-weight: 600;
+    margin-bottom: 1em;
+}
+#map > div > div {
+    padding-bottom: 100% !important;
+}
+main > div {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+}
+form > button {
+    width: 100%;
+}
+#download-button {
+    width: 100%;
+}
+
+#spinner {
+    height: 1em;
+}

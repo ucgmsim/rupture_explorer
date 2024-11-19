@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Rupture Explorer</title>
+
+    <!-- HTMX for dynamic, server-driven interactions -->
+    <script src="https://unpkg.com/htmx.org"></script>
+
+    <!-- Optional: Include Hyperscript for additional scripting capabilities -->
+    <script src="https://unpkg.com/hyperscript.org"></script>
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://unpkg.com/chimeracss/build/chimera.css"
+    />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="{{url_for('static', filename='style.css')}}"
+    />
+  </head>
+  <body>
+    <header>
+      <h1>Rupture Explorer</h1>
+    </header>
+    <main id="main-content">
+      <form
+        id="query"
+        hx-post="/ruptures"
+        hx-target="#results"
+        hx-indicator="#spinner"
+      >
+        <label>Search Query</label>
+        <input
+          name="query"
+          placeholder="Fault A | (Fault B & Fault C) & !Fault D"
+        />
+        <details>
+          <summary>Magnitude</summary>
+          <label>Lower Magnitude</label>
+          <input name="magnitude_lower_bound" step="any" type="number" />
+          <label>Upper Magnitude</label>
+          <input name="magnitude_upper_bound" step="any" type="number" />
+        </details>
+        <details>
+          <summary>Rate</summary>
+          <label>Lower Rate</label>
+          <input
+            name="rate_lower_bound"
+            step="any"
+            type="number"
+            placeholder="At least 1eN/yr"
+          />
+          <label>Upper Rate</label>
+          <input
+            name="rate_upper_bound"
+            step="any"
+            type="number"
+            placeholder="At most 1eN/yr"
+          />
+        </details>
+        <label>Max Fault Count</label>
+        <input name="max_fault_count" type="number" />
+
+        <button id="search-button">
+          <embed
+            id="spinner"
+            class="htmx-indicator"
+            src="{{url_for('static', filename='spinner.svg')}}"
+          />
+          Search
+        </button>
+      </form>
+
+      <div id="results" role="region" aria-live="polite"></div>
+      <div id="map" role="figure"></div>
+    </main>
+  </body>
+</html>
