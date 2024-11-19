@@ -2,6 +2,7 @@ import csv
 import datetime
 import os
 import tempfile
+from io import StringIO
 from typing import Optional
 
 import branca.colormap as cm
@@ -9,7 +10,7 @@ import folium
 import geopandas as gpd
 import numpy as np
 import shapely
-from flask import Flask, render_template, request, send_file
+from flask import Flask, Response, make_response, render_template, request, send_file
 
 from nshmdb import nshmdb
 from nshmdb.nshmdb import Rupture
@@ -214,32 +215,29 @@ def download():
     ruptures: dict[int, Rupture] = {
         rupture_id: db.get_rupture(rupture_id) for rupture_id in rupture_ids
     }
-    with tempfile.NamedTemporaryFile(mode="w", delete=False) as csv_out:
-        writer = csv.DictWriter(
-            csv_out, ["Rupture ID", "Magnitude", "Area", "Length", "Rate"]
-        )
-        writer.writeheader()
-        writer.writerows(
-            [
-                {
-                    "Rupture ID": rupture_id,
-                    "Magnitude": rupture.magnitude,
-                    "Area": rupture.area,
-                    "Length": rupture.length,
-                    "Rate": rupture.rate,
-                }
-                for rupture_id, rupture in ruptures.items()
-            ]
-        )
-        download_name = (
-            f'ruptures_{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M')}.csv'
-        )
-        return send_file(
-            csv_out.name,
-            mimetype="application/x-csv",
-            download_name=download_name,
-            as_attachment=True,
-        )
+    csv_out = StringIO()
+    writer = csv.DictWriter(
+        csv_out, ["Rupture ID", "Magnitude", "Area", "Length", "Rate"]
+    )
+    writer.writeheader()
+    writer.writerows(
+        [
+            {
+                "Rupture ID": rupture_id,
+                "Magnitude": rupture.magnitude,
+                "Area": rupture.area,
+                "Length": rupture.length,
+                "Rate": rupture.rate,
+            }
+            for rupture_id, rupture in ruptures.items()
+        ]
+    )
+    response: Response = make_response(csv_out.getvalue())
+    response.mimetype = "application/x-csv"
+    response.headers["Content-Disposition"] = (
+        f"attachment; filename=ruptures_{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M')}.csv"
+    )
+    return response
 
 
 @app.route("/")
