@@ -205,7 +205,7 @@ def ruptures() -> str:
 
 
 @app.route("/download")
-def download_ruptures():
+def download():
     """Serve a CSV file containing all the filtered ruptures."""
     rupture_ids = [
         int(rupture_id) for rupture_id in request.args.get("ruptures").split(",")
