@@ -214,7 +214,7 @@ def download():
     ruptures: dict[int, Rupture] = {
         rupture_id: db.get_rupture(rupture_id) for rupture_id in rupture_ids
     }
-    with tempfile.NamedTemporaryFile(mode="w") as csv_out:
+    with tempfile.NamedTemporaryFile(mode="w", delete=False) as csv_out:
         writer = csv.DictWriter(
             csv_out, ["Rupture ID", "Magnitude", "Area", "Length", "Rate"]
         )
