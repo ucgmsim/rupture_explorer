@@ -10,7 +10,7 @@ import folium
 import geopandas as gpd
 import numpy as np
 import shapely
-from flask import Flask, Response, make_response, render_template, request, send_file
+from flask import Flask, Response, make_response, render_template, request, url_for
 
 from nshmdb import nshmdb
 from nshmdb.nshmdb import Rupture
@@ -168,6 +168,10 @@ def ruptures() -> str:
         A table containing all the ruptures.
     """
     query: str = request.form.get("query", type=str)
+    if not query:
+        response = make_response("")
+        response.headers["HX-Push-Url"] = url_for("index")
+        return response
 
     magnitude_lower_bound: Optional[float] = request.form.get(
         "magnitude_lower_bound", default=None, type=float
@@ -201,8 +205,19 @@ def ruptures() -> str:
         )
         for rupture_id, rupture in ruptures.items()
     }
-
-    return render_template("ruptures.html", ruptures=ruptures, magnitudes=magnitudes)
+    response = make_response(
+        render_template("ruptures.html", ruptures=ruptures, magnitudes=magnitudes)
+    )
+    response.headers["HX-Push-Url"] = url_for(
+        "index",
+        query=query,
+        magnitude_lower_bound=magnitude_lower_bound,
+        magnitude_upper_bound=magnitude_upper_bound,
+        rate_lower_bound=rate_lower_bound,
+        rate_upper_bound=rate_upper_bound,
+        max_fault_count=max_fault_count,
+    )
+    return response
 
 
 @app.route("/download")
@@ -243,7 +258,54 @@ def download():
 @app.route("/")
 def index() -> str:
     """Serve the index file."""
-    return render_template("index.html")
+    query: Optional[str] = request.args.get("query", None, type=str)
+
+    magnitude_lower_bound: Optional[float] = request.args.get(
+        "magnitude_lower_bound", default=None, type=float
+    )
+    magnitude_upper_bound: Optional[float] = request.args.get(
+        "magnitude_upper_bound", default=None, type=float
+    )
+    rate_lower_bound: Optional[float] = request.args.get(
+        "rate_lower_bound", default=None, type=float
+    )
+    rate_upper_bound: Optional[float] = request.args.get(
+        "rate_upper_bound", default=None, type=float
+    )
+    max_fault_count: Optional[int] = request.args.get(
+        "max_fault_count", default=None, type=int
+    )
+    db = nshmdb.NSHMDB(NSHMDB_PATH)
+    ruptures = None
+    magnitudes = None
+    if query:
+        ruptures = db.query(
+            query,
+            magnitude_bounds=(magnitude_lower_bound, magnitude_upper_bound),
+            rate_bounds=(
+                10**rate_lower_bound if rate_lower_bound is not None else None,
+                10**rate_upper_bound if rate_upper_bound is not None else None,
+            ),
+            limit=100,
+            fault_count_limit=max_fault_count,
+        )
+        magnitudes = {
+            rupture_id: mag_scaling.a_to_mw_leonard(
+                sum(fault.area() for fault in rupture.faults.values()), 4, 3.99, 0
+            )
+            for rupture_id, rupture in ruptures.items()
+        }
+    return render_template(
+        "index.html",
+        query=query,
+        magnitude_lower_bound=magnitude_lower_bound,
+        magnitude_upper_bound=magnitude_upper_bound,
+        rate_lower_bound=rate_lower_bound,
+        rate_upper_bound=rate_upper_bound,
+        max_fault_count=max_fault_count,
+        ruptures=ruptures,
+        magnitudes=magnitudes,
+    )
 
 
 if __name__ == "__main__":

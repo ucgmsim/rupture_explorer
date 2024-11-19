@@ -32,18 +32,30 @@
         hx-post="{{url_for('ruptures')}}"
         hx-target="#results"
         hx-indicator="#spinner"
+        hx-push-url="true"
       >
         <label>Search Query</label>
         <input
           name="query"
           placeholder="Fault A | (Fault B & Fault C) & !Fault D"
+          value="{{query or ''}}"
         />
         <details>
           <summary>Magnitude</summary>
           <label>Lower Magnitude</label>
-          <input name="magnitude_lower_bound" step="any" type="number" />
+          <input
+            name="magnitude_lower_bound"
+            step="any"
+            type="number"
+            value="{{magnitude_lower_bound}}"
+          />
           <label>Upper Magnitude</label>
-          <input name="magnitude_upper_bound" step="any" type="number" />
+          <input
+            name="magnitude_upper_bound"
+            step="any"
+            type="number"
+            value="{{magnitude_upper_bound}}"
+          />
         </details>
         <details>
           <summary>Rate</summary>
@@ -53,6 +65,7 @@
             step="any"
             type="number"
             placeholder="At least 1eN/yr"
+            value="{{rate_lower_bound}}"
           />
           <label>Upper Rate</label>
           <input
@@ -60,10 +73,15 @@
             step="any"
             type="number"
             placeholder="At most 1eN/yr"
+            value="{{rate_upper_bound}}"
           />
         </details>
         <label>Max Fault Count</label>
-        <input name="max_fault_count" type="number" />
+        <input
+          name="max_fault_count"
+          type="number"
+          value="{{max_fault_count}}"
+        />
 
         <button id="search-button">
           <embed
@@ -75,7 +93,9 @@
         </button>
       </form>
 
-      <div id="results" role="region" aria-live="polite"></div>
+      <div id="results" role="region" aria-live="polite">
+        {% if ruptures %} {% include "ruptures.html" %} {% endif %}
+      </div>
       <div id="map" role="figure"></div>
     </main>
   </body>
