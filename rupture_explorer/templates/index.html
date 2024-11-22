@@ -11,6 +11,10 @@
 
     <!-- Optional: Include Hyperscript for additional scripting capabilities -->
     <script src="https://unpkg.com/hyperscript.org"></script>
+    <script
+      src="https://cdn.plot.ly/plotly-2.35.2.min.js"
+      charset="utf-8"
+    ></script>
     <link
       rel="stylesheet"
       type="text/css"
@@ -41,8 +45,8 @@
           value="{{query or ''}}"
         />
         <details>
-          <summary>Magnitude</summary>
-          <label>Lower Magnitude</label>
+          <summary>Options</summary>
+          ; <label>Lower Magnitude</label>
           <input
             name="magnitude_lower_bound"
             step="any"
@@ -56,9 +60,6 @@
             type="number"
             value="{{magnitude_upper_bound}}"
           />
-        </details>
-        <details>
-          <summary>Rate</summary>
           <label>Lower Rate</label>
           <input
             name="rate_lower_bound"
@@ -75,13 +76,14 @@
             placeholder="At most 1eN/yr"
             value="{{rate_upper_bound}}"
           />
+          <label>Max Fault Count</label>
+
+          <input
+            name="max_fault_count"
+            type="number"
+            value="{{max_fault_count}}"
+          />
         </details>
-        <label>Max Fault Count</label>
-        <input
-          name="max_fault_count"
-          type="number"
-          value="{{max_fault_count}}"
-        />
 
         <button id="search-button">
           <embed
@@ -92,11 +94,9 @@
           Search
         </button>
       </form>
-
       <div id="results" role="region" aria-live="polite">
         {% if ruptures %} {% include "ruptures.html" %} {% endif %}
       </div>
-      <div id="map" role="figure"></div>
     </main>
   </body>
 </html>

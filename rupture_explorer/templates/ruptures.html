@@ -1,43 +1,49 @@
-<h2>Showing {{ ruptures | length }} Ruptures</h2>
-<div id="results-table">
-  <table>
-    <thead>
-      <tr>
-        <th>Rupture ID</th>
-        <th>Magnitude</th>
-        <th>Magnitude (Leonard 2014)</th>
-        <th>Area (km²)</th>
-        <th>Length (km)</th>
-        <th>Rate (per year)</th>
-        <th>Faults</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for rupture_id, rupture in ruptures.items() %}
-      <tr>
-        <td>{{ rupture.rupture_id }}</td>
-        <td>{{ '%.2f' | format(rupture.magnitude) }}</td>
-        <td>{{ '%.2f' | format(magnitudes[rupture_id]) }}</td>
-        <td>{{ (rupture.area / 1e6) | round | int }}</td>
-        <td>{{ (rupture.length / 1000) | round | int }}</td>
-        <td>
-          {{ '%.2e' | format(rupture.rate) if rupture.rate is not none else
-          'N/A' }}
-        </td>
-        <td>
-          <button
-            hx-get="{{ url_for('rupture_map', rupture_id=rupture_id) }}"
-            hx-target="#map"
-          >
-            {{ rupture.faults | fault_summary }}
-          </button>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+<h2>
+  Showing {{ ruptures | length }} Ruptures
+  <form id="download-form" method="get" action="{{ url_for('download') }}">
+    <input type="hidden" name="ruptures" value="{{ ruptures | join(',') }}" />
+    <button id="download-button" type="submit">Download as CSV</button>
+  </form>
+</h2>
+<div id="results-container">
+  <div id="results-table">
+    <table>
+      <thead>
+        <tr>
+          <th>Rupture ID</th>
+          <th>Magnitude</th>
+          <th>Magnitude (Leonard 2014)</th>
+          <th>Area (km²)</th>
+          <th>Length (km)</th>
+          <th>Rate (per year)</th>
+          <th>Faults</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for rupture_id, rupture in ruptures.items() %}
+        <tr>
+          <td>{{ rupture.rupture_id }}</td>
+          <td>{{ '%.2f' | format(rupture.magnitude) }}</td>
+          <td>{{ '%.2f' | format(magnitudes[rupture_id]) }}</td>
+          <td>{{ (rupture.area / 1e6) | round | int }}</td>
+          <td>{{ (rupture.length / 1000) | round | int }}</td>
+          <td>
+            {{ '%.2e' | format(rupture.rate) if rupture.rate is not none else
+            'N/A' }}
+          </td>
+          <td>
+            <button
+              hx-get="{{ url_for('rupture_map', rupture_id=rupture_id) }}"
+              hx-target="#map"
+            >
+              {{ rupture.faults | fault_summary }}
+            </button>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div id="map" role="figure"></div>
 </div>
-<form method="get" action="{{ url_for('download') }}">
-  <input type="hidden" name="ruptures" value="{{ ruptures | join(',') }}" />
-  <button id="download-button" type="submit">Download Ruptures as CSV</button>
-</form>

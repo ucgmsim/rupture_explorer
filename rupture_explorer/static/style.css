@@ -1,12 +1,12 @@
 #main-content {
     padding: 1em;
+    max-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    align-content: stretch;
 }
-#results-table {
-    overflow-y: scroll;
-    max-height: 400px;
-    margin-top: 1em;
-    margin-bottom: 1em;
-}
+
 #query input {
     margin-bottom: 1em;
 }
@@ -24,10 +24,37 @@ main > div {
 form > button {
     width: 100%;
 }
+#download-form {
+    display: inline-block;
+}
 #download-button {
-    width: 100%;
+    vertical-align: middle;
+    margin-left: 1em;
 }
 
 #spinner {
     height: 1em;
+}
+#results {
+    flex-grow: 1;
+}
+
+#results-container {
+    display: flex;
+    flex-direction: row;
+    margin-top: 1em;
+    margin-bottom: 1em;
+    max-height: 100vh; /* Limit container to viewport height */
+    overflow: hidden; /* Prevent overflow of the container */
+}
+
+#results-table {
+    overflow-y: auto; /* Make table scrollable when content overflows */
+    min-width: 40%;
+    max-height: 100%; /* Ensure the table doesn't exceed container height */
+}
+
+#map {
+    flex: 1;
+    height: 100%; /* Ensure it fills the container height */
 }

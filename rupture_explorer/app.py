@@ -1,19 +1,19 @@
 import csv
 import datetime
+import json
 import os
-import tempfile
 from io import StringIO
 from typing import Optional
 
-import branca.colormap as cm
-import folium
 import geopandas as gpd
 import numpy as np
+import plotly.express as px
 import shapely
 from flask import Flask, Response, make_response, render_template, request, url_for
 
 from nshmdb import nshmdb
 from nshmdb.nshmdb import Rupture
+from qcore import coordinates
 from qcore.uncertainties import mag_scaling
 from source_modelling.sources import Fault
 
@@ -69,36 +69,21 @@ def rupture_map(rupture_id: int) -> str:
         rupture.faults, {name: info.rake for name, info in fault_info.items()}
     )
     fault_rates = db.most_likely_fault(rupture_id, magnitudes)
-
-    fmap = folium.Map(tiles="cartodbpositron")
-    all_ruptures_fg = folium.FeatureGroup(
-        name=f"Rupture {rupture_id}", overlay=False, control=False, show=True
-    )
-
-    all_ruptures_fg.add_to(fmap)
+    rupture.faults = {
+        fault_name: fault
+        for fault_name, fault in rupture.faults.items()
+        if not fault.geometry.is_empty
+    }
     ring = gpd.GeoDataFrame(
         index=list(rupture.faults),
-        crs="epsg:2193",
         geometry=[
-            shapely.transform(fault.geometry, lambda coord: coord[:, ::-1])
+            shapely.transform(
+                fault.geometry,
+                lambda coord: coordinates.nztm_to_wgs_depth(coord)[:, ::-1],
+            )
             for fault in rupture.faults.values()
         ],
     )
-    min_rate = min(fault_rates.values())
-    linear = cm.LinearColormap(
-        ["green", "yellow", "red"],
-        vmin=np.log(min_rate),
-        vmax=np.log(max(fault_rates.values())),
-    )
-    ring["style"] = [
-        {
-            "color": "black",
-            "fillOpacity": 0.5,
-            "weight": 1,
-            "fillColor": linear(np.log(fault_rates.get(fault_name, min_rate))),
-        }
-        for fault_name in rupture.faults
-    ]
     ring["Name"] = list(rupture.faults)
     ring["Width (km)"] = [int(round(fault.width)) for fault in rupture.faults.values()]
     ring["Length (km)"] = [
@@ -106,34 +91,30 @@ def rupture_map(rupture_id: int) -> str:
     ]
     ring["Segments"] = [len(fault.planes) for fault in rupture.faults.values()]
     ring["Mean Segment Rupture Rate"] = [
-        f"{fault_rates.get(fault_name, 0) / len(fault.planes):.2e}"
+        fault_rates.get(fault_name, 0) / len(fault.planes)
         for fault_name, fault in rupture.faults.items()
     ]
-
-    tooltip = folium.GeoJsonPopup(
-        fields=[
-            "Name",
-            "Length (km)",
-            "Width (km)",
-            "Segments",
-            "Mean Segment Rupture Rate",
-        ],
-        localize=True,
-        labels=True,
+    fig = px.choropleth_map(
+        data_frame=ring,
+        geojson=json.loads(ring.to_json()),
+        locations=ring.index,
+        color="Mean Segment Rupture Rate",
+        hover_name="Name",
+        hover_data={
+            "Width (km)": True,
+            "Length (km)": True,
+            "Segments": True,
+            "Mean Segment Rupture Rate": ":.2e",
+        },
+        opacity=0.5,
+        center={"lat": -43, "lon": 172},
+        zoom=6,
     )
+    fig.update(layout_showlegend=False, layout_coloraxis_showscale=False)
 
-    folium.GeoJson(ring, popup=tooltip).add_to(all_ruptures_fg)
-
-    folium.LatLngPopup().add_to(fmap)
-    folium.LayerControl(collapsed=False, draggable=True).add_to(fmap)
-    folium.FitOverlays().add_to(fmap)
-
-    folium_map_render: str = fmap.get_root()._repr_html_()
+    fig.update_layout(margin={"l": 0, "r": 0, "b": 0, "t": 0})
     # The following replace removes the erroneous request to trust the notebook.
-    return folium_map_render.replace(
-        '<span style="color:#565656">Make this Notebook Trusted to load map: File -> Trust Notebook</span>',
-        "",
-    )
+    return fig.to_html(include_plotlyjs=False, full_html=False, div_id="map")
 
 
 @app.template_filter("fault_summary")
