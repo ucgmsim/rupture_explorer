@@ -6,19 +6,12 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <title>Rupture Explorer</title>
 
-    <!-- HTMX for dynamic, server-driven interactions -->
-    <script src="https://unpkg.com/htmx.org"></script>
-
-    <!-- Optional: Include Hyperscript for additional scripting capabilities -->
-    <script src="https://unpkg.com/hyperscript.org"></script>
-    <script
-      src="https://cdn.plot.ly/plotly-2.35.2.min.js"
-      charset="utf-8"
-    ></script>
-    <link
+    <script src="{{url_for('static', filename='htmx.min.js.gz')}}"></script>
+    <script src="{{url_for('static', filename='plotly-2.35.2.min.js.gz')}}"></script>
+        <link
       rel="stylesheet"
       type="text/css"
-      href="https://unpkg.com/chimeracss/build/chimera.css"
+      href="{{url_for('static', filename='chimera.css')}}"
     />
     <link
       rel="stylesheet"

@@ -21,19 +21,6 @@ app = Flask(__name__)
 NSHMDB_PATH = os.environ["NSHMDB_PATH"]
 
 
-@app.after_request
-def apply_csp(response: Response):
-    """Add CSP headers to evaluate Plotly plots."""
-    response.headers["Content-Security-Policy"] = (
-        "default-src 'self'; "
-        "script-src 'self' blob: https://code.jquery.com https://cdnjs.cloudflare.com "
-        "https://api.mapbox.com https://cdn.jsdelivr.net https://unpkg.com "
-        "https://www.googletagmanager.com https://maxcdn.bootstrapcdn.com "
-        "https://cdn.segment.com 'unsafe-inline' 'unsafe-eval' https://cdn.plot.ly; "
-    )
-    return response
-
-
 def default_magnitude_estimation(
     faults: dict[str, Fault], rakes: dict[str, float]
 ) -> dict[str, float]:
